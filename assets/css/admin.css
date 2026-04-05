@@ -1,0 +1,67 @@
+/**
+ * Quil Plugin Admin Styles
+ */
+
+.quil-container {
+    margin: 20px 0;
+}
+
+.quil-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+}
+
+.quil-form-group {
+    margin-bottom: 20px;
+}
+
+.quil-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.quil-select {
+    min-width: 250px;
+    padding: 6px 8px;
+}
+
+.quil-checkbox-label {
+    display: inline-block;
+    margin-right: 20px;
+    font-weight: normal !important;
+    cursor: pointer;
+}
+
+.quil-checkbox-label input {
+    margin-right: 5px;
+}
+
+.quil-file-input {
+    padding: 10px 0;
+}
+
+.quil-tab-content {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-top: none;
+    padding: 20px;
+}
+
+.nav-tab-wrapper {
+    margin-bottom: 0;
+}
+
+.description {
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+}
+
+.quil-container .notice {
+    margin: 20px 0 0 0;
+}
