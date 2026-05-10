@@ -1,10 +1,10 @@
-=== Quil – Export/Import WordPress Data ===
+=== Spinda – Export Import Data ===
 Contributors: microcodes
 Tags: post export, post import, product export import, user export, user import
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,9 +12,9 @@ Export and import posts, custom post types, users, WooCommerce data, and metadat
 
 == Description ==
 
-Quil is a powerful WordPress plugin designed to simplify data migration between WordPress websites. It allows you to export and import posts, custom post types, users, taxonomies, metadata, and WooCommerce data in a structured JSON format.
+Spinda is a powerful WordPress plugin designed to simplify data migration between WordPress websites. It allows you to export and import posts, custom post types, users, taxonomies, metadata, and WooCommerce data in a structured JSON format.
 
-Whether you're migrating a site, backing up content, or transferring data between environments, Quil provides a clean and efficient solution.
+Whether you're migrating a site, backing up content, or transferring data between environments, Spinda provides a clean and efficient solution.
 
 = Key Features =
 
@@ -26,7 +26,7 @@ Whether you're migrating a site, backing up content, or transferring data betwee
 
 = How It Works =
 
-1. Go to the **Quil** menu in your WordPress admin
+1. Go to the **Spinda** menu in your WordPress admin
 2. Choose **Posts** or **Users**
 3. Select the **Export** or **Import** tab
 
@@ -41,7 +41,7 @@ Whether you're migrating a site, backing up content, or transferring data betwee
 - Click **Import**
 - Data will be recreated on your site
 
-= Why Choose Quil? =
+= Why Choose Spinda? =
 
 * **Simple & Clean UI** – Easy-to-use admin interface
 * **Flexible Export Options** – Choose exactly what to include
@@ -54,21 +54,27 @@ Whether you're migrating a site, backing up content, or transferring data betwee
 
 1. Log in to your WordPress admin panel
 2. Go to **Plugins → Add New**
-3. Search for "Quil Export Import"
+3. Search for "Spinda Export Import Data"
 4. Click **Install Now**
 5. Activate the plugin
 
 = Manual Installation =
 
-1. Upload the `quil` folder to `/wp-content/plugins/`
+1. Upload the `spinda` folder to `/wp-content/plugins/`
 2. Activate via the **Plugins** menu
-3. Access via the **Quil** admin menu
+3. Access via the **Spinda** admin menu
 
 = Requirements =
 
 - WordPress 5.0 or higher
 - PHP 7.2 or higher
 - WooCommerce (optional, for product support)
+
+== Screenshots ==
+
+1. **Post Types Export** - Export post-types like post, page, product, cpts.
+2. **Users's Export** - Export users with user's meta.
+3. **Import Posts/Users** - Import posts, users etc.
 
 == Frequently Asked Questions ==
 
@@ -86,7 +92,7 @@ Yes, you can include post meta, term meta, and user meta.
 
 = Does it support WooCommerce? =
 
-Yes, Quil supports exporting and importing WooCommerce products and variations.
+Yes, Spinda supports exporting and importing WooCommerce products and variations.
 
 = Are images included? =
 
@@ -94,7 +100,7 @@ Featured images can be included during export.
 
 = Is it safe to use? =
 
-Yes. Quil uses WordPress security standards including:
+Yes. Spinda uses WordPress security standards including:
 - Nonce verification
 - Capability checks
 - Sanitization and escaping
@@ -119,13 +125,19 @@ Yes, but for very large datasets, consider increasing server limits (memory, exe
 
 == Changelog ==
 
+= 1.0.1 =
+* Taxonomies export & import module added
+
 = 1.0.0 =
 * Initial release
 
 == Upgrade Notice ==
 
+= 1.0.1 =
+Taxonomies export & import module added
+
 = 1.0.0 =
-Initial release of Quil – Export/Import WordPress Data.
+Initial release of Spinda – Export Import Data.
 
 == Additional Information ==
 
@@ -140,4 +152,4 @@ Always back up your database before performing import operations, especially on 
 
 = Privacy Notice =
 
-Quil does not collect or transmit any personal data. All exported data remains within your control and is stored locally as JSON files.
+Spinda does not collect or transmit any personal data. All exported data remains within your control and is stored locally as JSON files.

@@ -1,51 +1,51 @@
 /**
- * Quil Plugin Admin Styles
+ * Spinda Plugin Admin Styles
  */
 
-.quil-container {
+.spinexim-container {
     margin: 20px 0;
 }
 
-.quil-card {
+.spinexim-card {
     background: #fff;
     border: 1px solid #ccd0d4;
     border-radius: 4px;
     padding: 20px;
     margin-top: 20px;
-    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
 }
 
-.quil-form-group {
+.spinexim-form-group {
     margin-bottom: 20px;
 }
 
-.quil-form-group label {
+.spinexim-form-group label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
 }
 
-.quil-select {
+.spinexim-select {
     min-width: 250px;
     padding: 6px 8px;
 }
 
-.quil-checkbox-label {
+.spinexim-checkbox-label {
     display: inline-block;
     margin-right: 20px;
     font-weight: normal !important;
     cursor: pointer;
 }
 
-.quil-checkbox-label input {
+.spinexim-checkbox-label input {
     margin-right: 5px;
 }
 
-.quil-file-input {
+.spinexim-file-input {
     padding: 10px 0;
 }
 
-.quil-tab-content {
+.spinexim-tab-content {
     background: #fff;
     border: 1px solid #ccd0d4;
     border-top: none;
@@ -62,6 +62,31 @@
     margin-top: 5px;
 }
 
-.quil-container .notice {
+.spinexim-container .notice {
     margin: 20px 0 0 0;
+}
+
+/* Additional styles for taxonomies page */
+.spinexim-checkbox-group {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.spinexim-checkbox-group .spinexim-checkbox-label {
+    display: block;
+    margin-bottom: 8px;
+    padding: 5px 0;
+}
+
+.spinexim-checkbox-group .spinexim-checkbox-label:hover {
+    background: #f0f0f0;
+}
+
+.notice-warning.inline {
+    margin: 0 0 15px 0;
+    padding: 10px;
 }

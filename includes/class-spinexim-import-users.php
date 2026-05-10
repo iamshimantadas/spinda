@@ -3,7 +3,7 @@
  * User import handler class
  * 
  * @since 1.0.0
- * @package Quil
+ * @package Spinda
  */
 
 // Prevent direct access
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Quil_Import_Users {
+class Spinexim_Import_Users {
     
     /**
      * Media map array
@@ -27,20 +27,37 @@ class Quil_Import_Users {
      * @param array $file Uploaded file array
      * @return void
      */
-    public function mc_quil_import_users($file) {
-        $json = file_get_contents($file['tmp_name']);
-        $data = json_decode($json, true);
+    public function spinexim_import_users($file) {
+        // Validate file
+        if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            wp_die(__('Invalid file upload.', 'spinda-exportimport-data'));
+        }
+        
+        // Check file extension
+        $file_ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+        if (strtolower($file_ext) !== 'json') {
+            wp_die(__('Only JSON files are allowed.', 'spinda-exportimport-data'));
+        }
+        
+        $json_content = file_get_contents($file['tmp_name']);
+        if ($json_content === false) {
+            wp_die(__('Failed to read file content.', 'spinda-exportimport-data'));
+        }
+        
+        $data = json_decode($json_content, true);
         
         if (!$data || !isset($data['users'])) {
-            wp_die(__('Invalid JSON file format.', 'quil'));
+            wp_die(__('Invalid JSON file format.', 'spinda-exportimport-data'));
         }
         
         // Import media first
         if (isset($data['media']) && !empty($data['media'])) {
             foreach ($data['media'] as $media_item) {
-                $url = esc_url_raw($media_item['url']);
-                if (!isset($this->media_map[$url])) {
-                    $this->media_map[$url] = $this->mc_quil_import_media($url);
+                if (isset($media_item['url'])) {
+                    $url = esc_url_raw($media_item['url']);
+                    if (!empty($url) && !isset($this->media_map[$url])) {
+                        $this->media_map[$url] = $this->spinexim_import_media($url);
+                    }
                 }
             }
         }
@@ -49,8 +66,13 @@ class Quil_Import_Users {
         $skipped = 0;
         
         foreach ($data['users'] as $user) {
-            $login = sanitize_user($user['login']);
-            $email = sanitize_email($user['email']);
+            $login = isset($user['login']) ? sanitize_user($user['login']) : '';
+            $email = isset($user['email']) ? sanitize_email($user['email']) : '';
+            
+            if (empty($login) || empty($email)) {
+                $skipped++;
+                continue;
+            }
             
             // Check if user already exists
             if (username_exists($login) || email_exists($email)) {
@@ -63,9 +85,9 @@ class Quil_Import_Users {
             $user_data = array(
                 'user_login' => $login,
                 'user_email' => $email,
-                'display_name' => sanitize_text_field($user['display_name']),
-                'first_name' => sanitize_text_field($user['first_name']),
-                'last_name' => sanitize_text_field($user['last_name']),
+                'display_name' => isset($user['display_name']) ? sanitize_text_field($user['display_name']) : $login,
+                'first_name' => isset($user['first_name']) ? sanitize_text_field($user['first_name']) : '',
+                'last_name' => isset($user['last_name']) ? sanitize_text_field($user['last_name']) : '',
                 'user_pass' => $password,
                 'role' => isset($user['roles'][0]) ? sanitize_text_field($user['roles'][0]) : 'subscriber'
             );
@@ -76,13 +98,17 @@ class Quil_Import_Users {
                 continue;
             }
             
+            $user_id = absint($user_id);
+            
             // Import user meta
-            if (!empty($user['meta'])) {
+            if (!empty($user['meta']) && is_array($user['meta'])) {
                 foreach ($user['meta'] as $meta_key => $meta_values) {
                     $meta_key = sanitize_key($meta_key);
-                    foreach ($meta_values as $meta_value) {
-                        $meta_value = $this->mc_quil_convert_media($meta_value);
-                        add_user_meta($user_id, $meta_key, $meta_value);
+                    if (is_array($meta_values)) {
+                        foreach ($meta_values as $meta_value) {
+                            $meta_value = $this->spinexim_convert_media($meta_value);
+                            add_user_meta($user_id, $meta_key, $meta_value);
+                        }
                     }
                 }
             }
@@ -92,11 +118,11 @@ class Quil_Import_Users {
         
         // Show results
         echo '<div class="notice notice-success">';
-        echo '<p>' . esc_html__('Import Finished!', 'quil') . '</p>';
-        echo '<p>' . sprintf(esc_html__('Users Created: %d', 'quil'), intval($created)) . '</p>';
-        echo '<p>' . sprintf(esc_html__('Users Skipped (existing): %d', 'quil'), intval($skipped)) . '</p>';
+        echo '<p>' . esc_html__('Import Finished!', 'spinda-exportimport-data') . '</p>';
+        echo '<p>' . sprintf(esc_html__('Users Created: %d', 'spinda-exportimport-data'), intval($created)) . '</p>';
+        echo '<p>' . sprintf(esc_html__('Users Skipped (existing): %d', 'spinda-exportimport-data'), intval($skipped)) . '</p>';
         echo '</div>';
-        echo '<a href="' . esc_url(admin_url('admin.php?page=quil-users')) . '" class="button button-primary">' . esc_html__('Back to Quil', 'quil') . '</a>';
+        echo '<a href="' . esc_url(admin_url('admin.php?page=spinexim-users')) . '" class="button button-primary">' . esc_html__('Back to Spinda', 'spinda-exportimport-data') . '</a>';
         exit;
     }
     
@@ -107,14 +133,14 @@ class Quil_Import_Users {
      * @param string $url Media URL
      * @return int|string Attachment ID or original URL on failure
      */
-    private function mc_quil_import_media($url) {
+    private function spinexim_import_media($url) {
         require_once ABSPATH . 'wp-admin/includes/file.php';
         require_once ABSPATH . 'wp-admin/includes/media.php';
         require_once ABSPATH . 'wp-admin/includes/image.php';
         
         $existing_id = attachment_url_to_postid($url);
         if ($existing_id) {
-            return $existing_id;
+            return absint($existing_id);
         }
         
         $tmp = download_url($url);
@@ -135,7 +161,7 @@ class Quil_Import_Users {
             return $url;
         }
         
-        return $id;
+        return absint($id);
     }
     
     /**
@@ -145,7 +171,7 @@ class Quil_Import_Users {
      * @param mixed $value Value to convert
      * @return mixed Converted value
      */
-    private function mc_quil_convert_media($value) {
+    private function spinexim_convert_media($value) {
         if (is_string($value) && preg_match('/https?:\/\/.*\.(jpg|jpeg|png|gif|webp|svg|pdf|doc|docx|xls|xlsx|zip|mp4|mov|mp3)/i', $value)) {
             if (isset($this->media_map[$value])) {
                 return $this->media_map[$value];
@@ -155,7 +181,7 @@ class Quil_Import_Users {
         
         if (is_array($value)) {
             foreach ($value as $key => $val) {
-                $value[$key] = $this->mc_quil_convert_media($val);
+                $value[$key] = $this->spinexim_convert_media($val);
             }
         }
         

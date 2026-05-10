@@ -3,7 +3,7 @@
  * Post export handler class
  * 
  * @since 1.0.0
- * @package Quil
+ * @package Spinda
  */
 
 // Prevent direct access
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Quil_Export {
+class Spinexim_Export {
     
     /**
      * Skip meta keys array
@@ -33,7 +33,7 @@ class Quil_Export {
      * @param bool $include_variations Include product variations
      * @return void
      */
-    public function mc_quil_export_posts(
+    public function spinexim_export_posts(
         $post_type,
         $include_taxonomies,
         $include_term_meta,
@@ -42,6 +42,12 @@ class Quil_Export {
         $include_comments,
         $include_variations
     ) {
+        // Validate post type exists
+        $post_type_obj = get_post_type_object($post_type);
+        if (!$post_type_obj) {
+            wp_die(__('Invalid post type.', 'spinda-exportimport-data'));
+        }
+        
         $data = array(
             'post_type' => $post_type,
             'media' => array(),
@@ -54,11 +60,11 @@ class Quil_Export {
         
         // Export taxonomies
         if ($include_taxonomies) {
-            $this->mc_quil_export_taxonomies($post_type, $include_term_meta, $data, $media_map, $term_map);
+            $this->spinexim_export_taxonomies($post_type, $include_term_meta, $data, $media_map, $term_map);
         }
         
         // Export posts
-        $this->mc_quil_export_posts_data(
+        $this->spinexim_export_posts_data(
             $post_type,
             $include_featured_media,
             $include_post_meta,
@@ -69,7 +75,7 @@ class Quil_Export {
         );
         
         // Download JSON
-        $this->mc_quil_download_json($data, $post_type);
+        $this->spinexim_download_json($data, $post_type);
     }
     
     /**
@@ -83,7 +89,7 @@ class Quil_Export {
      * @param array &$term_map Reference to term map
      * @return void
      */
-    private function mc_quil_export_taxonomies($post_type, $include_term_meta, &$data, &$media_map, &$term_map) {
+    private function spinexim_export_taxonomies($post_type, $include_term_meta, &$data, &$media_map, &$term_map) {
         $taxes = get_object_taxonomies($post_type);
         
         foreach ($taxes as $tax) {
@@ -106,14 +112,14 @@ class Quil_Export {
                 if ($term->parent) {
                     $parent = get_term($term->parent);
                     if ($parent && !is_wp_error($parent)) {
-                        $parent_slug = $parent->slug;
+                        $parent_slug = sanitize_title($parent->slug);
                     }
                 }
                 
                 $term_data = array(
-                    'taxonomy' => $tax,
-                    'slug' => $term->slug,
-                    'name' => $term->name,
+                    'taxonomy' => sanitize_key($tax),
+                    'slug' => sanitize_title($term->slug),
+                    'name' => sanitize_text_field($term->name),
                     'parent_slug' => $parent_slug,
                     'meta' => array()
                 );
@@ -124,6 +130,8 @@ class Quil_Export {
                     $meta = array();
                     
                     foreach ($meta_raw as $meta_key => $meta_values) {
+                        $meta_key = sanitize_key($meta_key);
+                        
                         if (in_array($meta_key, $this->skip_meta)) {
                             continue;
                         }
@@ -133,7 +141,7 @@ class Quil_Export {
                         
                         foreach ($meta_values as $meta_value) {
                             $meta_value = maybe_unserialize($meta_value);
-                            $meta_value = $this->mc_quil_detect_media($meta_value, $media_map, $data);
+                            $meta_value = $this->spinexim_detect_media($meta_value, $media_map, $data);
                             $meta[$meta_key][] = $meta_value;
                         }
                     }
@@ -160,7 +168,7 @@ class Quil_Export {
      * @param array &$media_map Reference to media map
      * @return void
      */
-    private function mc_quil_export_posts_data(
+    private function spinexim_export_posts_data(
         $post_type,
         $include_featured_media,
         $include_post_meta,
@@ -186,7 +194,7 @@ class Quil_Export {
             if ($post->post_parent) {
                 $parent = get_post($post->post_parent);
                 if ($parent) {
-                    $parent_slug = $parent->post_name;
+                    $parent_slug = sanitize_title($parent->post_name);
                 }
             }
             
@@ -194,7 +202,8 @@ class Quil_Export {
             $featured = '';
             if ($include_featured_media && has_post_thumbnail($post->ID)) {
                 $featured = wp_get_attachment_url(get_post_thumbnail_id($post->ID));
-                $this->mc_quil_detect_media($featured, $media_map, $data);
+                $featured = esc_url_raw($featured);
+                $this->spinexim_detect_media($featured, $media_map, $data);
             }
             
             // Post meta
@@ -203,6 +212,8 @@ class Quil_Export {
                 $meta_raw = get_post_meta($post->ID);
                 
                 foreach ($meta_raw as $meta_key => $meta_values) {
+                    $meta_key = sanitize_key($meta_key);
+                    
                     if (in_array($meta_key, $this->skip_meta)) {
                         continue;
                     }
@@ -212,7 +223,7 @@ class Quil_Export {
                     
                     foreach ($meta_values as $meta_value) {
                         $meta_value = maybe_unserialize($meta_value);
-                        $meta_value = $this->mc_quil_detect_media($meta_value, $media_map, $data);
+                        $meta_value = $this->spinexim_detect_media($meta_value, $media_map, $data);
                         $meta[$meta_key][] = $meta_value;
                     }
                 }
@@ -225,8 +236,8 @@ class Quil_Export {
                 if (!is_wp_error($post_terms)) {
                     foreach ($post_terms as $term) {
                         $terms[] = array(
-                            'taxonomy' => $tax,
-                            'slug' => $term->slug
+                            'taxonomy' => sanitize_key($tax),
+                            'slug' => sanitize_title($term->slug)
                         );
                     }
                 }
@@ -238,10 +249,10 @@ class Quil_Export {
                 $comments = get_comments(array('post_id' => $post->ID));
                 foreach ($comments as $comment) {
                     $comment_data[] = array(
-                        'author' => $comment->comment_author,
-                        'email' => $comment->comment_author_email,
-                        'content' => $comment->comment_content,
-                        'date' => $comment->comment_date
+                        'author' => sanitize_text_field($comment->comment_author),
+                        'email' => sanitize_email($comment->comment_author_email),
+                        'content' => sanitize_textarea_field($comment->comment_content),
+                        'date' => sanitize_text_field($comment->comment_date)
                     );
                 }
             }
@@ -260,15 +271,17 @@ class Quil_Export {
                     $v_meta_raw = get_post_meta($variation->ID);
                     
                     foreach ($v_meta_raw as $meta_key => $meta_values) {
+                        $meta_key = sanitize_key($meta_key);
+                        
                         foreach ($meta_values as $meta_value) {
                             $meta_value = maybe_unserialize($meta_value);
-                            $meta_value = $this->mc_quil_detect_media($meta_value, $media_map, $data);
+                            $meta_value = $this->spinexim_detect_media($meta_value, $media_map, $data);
                             $variation_meta[$meta_key][] = $meta_value;
                         }
                     }
                     
                     $variations[] = array(
-                        'slug' => $variation->post_name,
+                        'slug' => sanitize_title($variation->post_name),
                         'meta' => $variation_meta
                     );
                 }
@@ -276,13 +289,13 @@ class Quil_Export {
             
             // Build post data
             $post_data = array(
-                'slug' => $post->post_name,
+                'slug' => sanitize_title($post->post_name),
                 'parent_slug' => $parent_slug,
-                'title' => $post->post_title,
-                'content' => $post->post_content,
-                'excerpt' => $post->post_excerpt,
-                'status' => $post->post_status,
-                'date' => $post->post_date,
+                'title' => sanitize_text_field($post->post_title),
+                'content' => wp_kses_post($post->post_content),
+                'excerpt' => sanitize_textarea_field($post->post_excerpt),
+                'status' => sanitize_key($post->post_status),
+                'date' => sanitize_text_field($post->post_date),
                 'featured' => $featured,
                 'terms' => $terms,
                 'meta' => $meta,
@@ -305,16 +318,26 @@ class Quil_Export {
      * @param array &$data Reference to data array
      * @return mixed Processed value
      */
-    private function mc_quil_detect_media($value, &$media_map, &$data) {
+    private function spinexim_detect_media($value, &$media_map, &$data) {
         // Attachment ID
         if (is_numeric($value)) {
-            $url = wp_get_attachment_url(intval($value));
+            $attachment_id = absint($value);
+            $url = wp_get_attachment_url($attachment_id);
             if ($url) {
+                $url = esc_url_raw($url);
                 if (!isset($media_map[$url])) {
-                    $media_map[$url] = $value;
+                    $media_map[$url] = $attachment_id;
+                    
+                    // Sanitize attachment meta
+                    $attachment_meta = get_post_meta($attachment_id);
+                    $sanitized_meta = array();
+                    foreach ($attachment_meta as $meta_key => $meta_values) {
+                        $sanitized_meta[sanitize_key($meta_key)] = $meta_values;
+                    }
+                    
                     $data['media'][] = array(
                         'url' => $url,
-                        'meta' => get_post_meta(intval($value))
+                        'meta' => $sanitized_meta
                     );
                 }
                 return $url;
@@ -323,18 +346,19 @@ class Quil_Export {
         
         // WooCommerce gallery IDs (comma separated)
         if (is_string($value) && preg_match('/^\d+(,\d+)+$/', $value)) {
-            $ids = array_map('intval', explode(',', $value));
+            $ids = array_map('absint', explode(',', $value));
             $urls = array();
             
             foreach ($ids as $id) {
                 $url = wp_get_attachment_url($id);
                 if ($url) {
+                    $url = esc_url_raw($url);
                     $urls[] = $url;
                     if (!isset($media_map[$url])) {
                         $media_map[$url] = $id;
                         $data['media'][] = array(
                             'url' => $url,
-                            'meta' => get_post_meta($id)
+                            'meta' => array()
                         );
                     }
                 }
@@ -344,19 +368,20 @@ class Quil_Export {
         
         // Direct media URL
         if (is_string($value) && preg_match('/https?:\/\/.*\.(jpg|jpeg|png|gif|webp|svg|pdf|doc|docx|xls|xlsx|zip|mp4|mov|mp3|txt)(\?.*)?$/i', $value)) {
-            if (!isset($media_map[$value])) {
-                $media_map[$value] = true;
+            $url = esc_url_raw($value);
+            if (!isset($media_map[$url])) {
+                $media_map[$url] = true;
                 $data['media'][] = array(
-                    'url' => $value,
+                    'url' => $url,
                     'meta' => array()
                 );
             }
-            return $value;
+            return $url;
         }
         
         // ACF image/file array
         if (is_array($value) && isset($value['url'])) {
-            $url = $value['url'];
+            $url = esc_url_raw($value['url']);
             if (!isset($media_map[$url])) {
                 $media_map[$url] = true;
                 $data['media'][] = array(
@@ -370,7 +395,7 @@ class Quil_Export {
         // Recursive arrays
         if (is_array($value)) {
             foreach ($value as $key => $val) {
-                $value[$key] = $this->mc_quil_detect_media($val, $media_map, $data);
+                $value[$key] = $this->spinexim_detect_media($val, $media_map, $data);
             }
         }
         
@@ -385,7 +410,7 @@ class Quil_Export {
      * @param string $post_type Post type name
      * @return void
      */
-    private function mc_quil_download_json($data, $post_type) {
+    private function spinexim_download_json($data, $post_type) {
         header('Content-Type: application/json');
         header('Content-Disposition: attachment; filename="' . sanitize_title($post_type) . '-export.json"');
         

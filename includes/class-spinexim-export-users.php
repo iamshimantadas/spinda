@@ -3,7 +3,7 @@
  * User export handler class
  * 
  * @since 1.0.0
- * @package Quil
+ * @package Spinda
  */
 
 // Prevent direct access
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Quil_Export_Users {
+class Spinexim_Export_Users {
     
     /**
      * Skip meta keys array
@@ -28,7 +28,7 @@ class Quil_Export_Users {
      * @param bool $include_user_meta Include user meta
      * @return void
      */
-    public function mc_quil_export_users($user_role, $include_user_meta) {
+    public function spinexim_export_users($user_role, $include_user_meta) {
         $data = array(
             'media' => array(),
             'users' => array()
@@ -46,14 +46,14 @@ class Quil_Export_Users {
         
         foreach ($users as $user) {
             $user_data = array(
-                'login' => $user->user_login,
-                'email' => $user->user_email,
-                'nicename' => $user->user_nicename,
-                'display_name' => $user->display_name,
-                'first_name' => $user->first_name,
-                'last_name' => $user->last_name,
-                'registered' => $user->user_registered,
-                'roles' => $user->roles,
+                'login' => sanitize_user($user->user_login),
+                'email' => sanitize_email($user->user_email),
+                'nicename' => sanitize_title($user->user_nicename),
+                'display_name' => sanitize_text_field($user->display_name),
+                'first_name' => sanitize_text_field($user->first_name),
+                'last_name' => sanitize_text_field($user->last_name),
+                'registered' => sanitize_text_field($user->user_registered),
+                'roles' => array_map('sanitize_text_field', $user->roles),
                 'meta' => array()
             );
             
@@ -63,6 +63,8 @@ class Quil_Export_Users {
                 $meta = array();
                 
                 foreach ($meta_raw as $meta_key => $meta_values) {
+                    $meta_key = sanitize_key($meta_key);
+                    
                     if (in_array($meta_key, $this->skip_meta)) {
                         continue;
                     }
@@ -72,7 +74,7 @@ class Quil_Export_Users {
                     
                     foreach ($meta_values as $meta_value) {
                         $meta_value = maybe_unserialize($meta_value);
-                        $meta_value = $this->mc_quil_detect_media($meta_value, $media_map, $data);
+                        $meta_value = $this->spinexim_detect_media($meta_value, $media_map, $data);
                         $meta[$meta_key][] = $meta_value;
                     }
                 }
@@ -84,7 +86,7 @@ class Quil_Export_Users {
         }
         
         // Download JSON
-        $this->mc_quil_download_json($data);
+        $this->spinexim_download_json($data);
     }
     
     /**
@@ -96,16 +98,18 @@ class Quil_Export_Users {
      * @param array &$data Reference to data array
      * @return mixed Processed value
      */
-    private function mc_quil_detect_media($value, &$media_map, &$data) {
+    private function spinexim_detect_media($value, &$media_map, &$data) {
         // Attachment ID
         if (is_numeric($value)) {
-            $url = wp_get_attachment_url(intval($value));
+            $attachment_id = absint($value);
+            $url = wp_get_attachment_url($attachment_id);
             if ($url) {
+                $url = esc_url_raw($url);
                 if (!isset($media_map[$url])) {
-                    $media_map[$url] = $value;
+                    $media_map[$url] = $attachment_id;
                     $data['media'][] = array(
                         'url' => $url,
-                        'meta' => get_post_meta(intval($value))
+                        'meta' => array()
                     );
                 }
                 return $url;
@@ -114,18 +118,19 @@ class Quil_Export_Users {
         
         // WooCommerce gallery IDs
         if (is_string($value) && preg_match('/^\d+(,\d+)+$/', $value)) {
-            $ids = array_map('intval', explode(',', $value));
+            $ids = array_map('absint', explode(',', $value));
             $urls = array();
             
             foreach ($ids as $id) {
                 $url = wp_get_attachment_url($id);
                 if ($url) {
+                    $url = esc_url_raw($url);
                     $urls[] = $url;
                     if (!isset($media_map[$url])) {
                         $media_map[$url] = $id;
                         $data['media'][] = array(
                             'url' => $url,
-                            'meta' => get_post_meta($id)
+                            'meta' => array()
                         );
                     }
                 }
@@ -135,19 +140,20 @@ class Quil_Export_Users {
         
         // Direct media URL
         if (is_string($value) && preg_match('/https?:\/\/.*\.(jpg|jpeg|png|gif|webp|svg|pdf|doc|docx|xls|xlsx|zip|mp4|mov|mp3)(\?.*)?$/i', $value)) {
-            if (!isset($media_map[$value])) {
-                $media_map[$value] = true;
+            $url = esc_url_raw($value);
+            if (!isset($media_map[$url])) {
+                $media_map[$url] = true;
                 $data['media'][] = array(
-                    'url' => $value,
+                    'url' => $url,
                     'meta' => array()
                 );
             }
-            return $value;
+            return $url;
         }
         
         // ACF image/file array
         if (is_array($value) && isset($value['url'])) {
-            $url = $value['url'];
+            $url = esc_url_raw($value['url']);
             if (!isset($media_map[$url])) {
                 $media_map[$url] = true;
                 $data['media'][] = array(
@@ -161,7 +167,7 @@ class Quil_Export_Users {
         // Recursive arrays
         if (is_array($value)) {
             foreach ($value as $key => $val) {
-                $value[$key] = $this->mc_quil_detect_media($val, $media_map, $data);
+                $value[$key] = $this->spinexim_detect_media($val, $media_map, $data);
             }
         }
         
@@ -175,7 +181,7 @@ class Quil_Export_Users {
      * @param array $data Export data
      * @return void
      */
-    private function mc_quil_download_json($data) {
+    private function spinexim_download_json($data) {
         header('Content-Type: application/json');
         header('Content-Disposition: attachment; filename="users-export.json"');
         

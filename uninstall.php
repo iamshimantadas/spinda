@@ -1,8 +1,8 @@
 <?php
 /**
- * Uninstall Quil Plugin
+ * Uninstall Spinda Plugin
  *
- * @package Quil
+ * @package Spinda
  */
 
 // Exit if accessed directly
