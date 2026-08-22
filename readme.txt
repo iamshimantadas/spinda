@@ -1,10 +1,10 @@
-=== Spinda – Export Import Data ===
+=== Spinda – Export & Import Posts, Post Meta, Products, Taxonomies, Users & User Meta ===
 Contributors: microcodes
-Tags: post export, post import, product export import, user export, user import
+Tags: post export import, product export import, user export import, taxonomies & tax-meta export import
 Requires at least: 5.0
-Tested up to: 6.9
+Tested up to: 7.0.4
 Requires PHP: 7.2
-Stable tag: 1.0.1
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -18,20 +18,21 @@ Whether you're migrating a site, backing up content, or transferring data betwee
 
 = Key Features =
 
-* **📦 Post & Custom Post Type Export/Import** – Transfer any public post type with it's taxonomies & tax-meta easily
-* **👥 User Export/Import** – Migrate users with roles and metadata
-* **💬 Comments Support** – Optionally include comments
-* **🛍️ WooCommerce Support** – Export products and variations
-* **⚡ JSON-Based System** – Lightweight and portable data format
+* **📦 Post & Custom Post Type Export/Import** – Transfer any public post type with taxonomies, taxonomy metadata, ACF fields, comments, and featured images
+* **👥 User Export/Import** – Migrate users by role with complete profile info, capabilities, and metadata (ACF fields supported)
+* **🛍️ WooCommerce Products Export/Import** – Export/Import products with variations, categories, tags, attributes, reviews, and metadata
+* **🏷️ Taxonomies Export/Import** – Export taxonomy terms independently with hierarchy, term counts, thumbnails, and full metadata
+* **⚡ JSON-Based System** – Lightweight and portable data format, works between any WordPress installations
+* **🔄 Batch Processing** – Handles large datasets with cron jobs, progress bars, and auto-refresh
+* **🖼️ ACF & Meta Support** – Full support for ACF galleries, images, files, links, and serialized data
 
 = How It Works =
 
 1. Go to the **Spinda** menu in your WordPress admin
-2. Choose **Posts** or **Users**
-3. Select the **Export** or **Import** tab
+2. Choose what to export & import from the plugin.
 
 = Exporting Data =
-- Select post type or user role
+- Select post type or user role or woo product
 - Choose what to include (meta, taxonomies, media, etc.)
 - Click **Export**
 - Download JSON file
@@ -72,9 +73,11 @@ Whether you're migrating a site, backing up content, or transferring data betwee
 
 == Screenshots ==
 
-1. **Post Types Export** - Export post-types like post, page, product, cpts.
-2. **Users's Export** - Export users with user's meta.
-3. **Import Posts/Users** - Import posts, users etc.
+1. **Post Types Import** - Export post-types like post, page, product, cpts & products.
+2. **Taxonomies Import** - Export users with user's meta.
+3. **Woocommerce products export** - Export Woocommerce products & product-meta export
+4. **Woocommerce products import** - Export Woocommerce products & product-meta import of exported json.
+
 
 == Frequently Asked Questions ==
 
@@ -125,6 +128,17 @@ Yes, but for very large datasets, consider increasing server limits (memory, exe
 
 == Changelog ==
 
+= 2.0.1 =
+* Post Meta HTML contains support.
+* Tax Meta HTML contains support.
+* Taxonomy support with tax-meta & improved tax parent child linking.
+
+= 2.0.0 =
+* WooCommerce products with product-meta & product categories, brands, attributes, reviews export & import support.
+* Post-types & post-meta with taxonomies & tax-meta export & import support.
+* Taxonomies with tax-meta customized export & import support.
+* User with user-meta export & import support.
+
 = 1.0.1 =
 * Taxonomies export & import module added
 
@@ -132,6 +146,9 @@ Yes, but for very large datasets, consider increasing server limits (memory, exe
 * Initial release
 
 == Upgrade Notice ==
+
+= 2.0.1 =
+Added Post and Tax Meta HTML support, alongside tax-meta integration and improved parent-child taxonomy linking.
 
 = 1.0.1 =
 Taxonomies export & import module added
